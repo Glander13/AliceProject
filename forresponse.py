@@ -1,4 +1,4 @@
-class EasyResponse:
+class Response:
     def __init__(self, request):
         # заголовок ответа
         self.res = {
@@ -31,10 +31,8 @@ class EasyResponse:
         button['title'] = title
         if url:
             button['url'] = url
-            # если есть ссылка, то показываем ее, как ссылка, и чтобы не удалялась при нажатии
             button['hide'] = False
         else:
-            # если ссылки нет, то показываем, как кнопка, и чтобы удалялась при нажатии
             button['hide'] = True
 
         # добавляем кнопку в список

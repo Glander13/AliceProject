@@ -3,4 +3,4 @@ class User:
     def __init__(self):
         self.name = None
         self.room = 1
-        self.table1 = False
+        self.table = False
