@@ -8,7 +8,7 @@ from dialogs import *
 # библиотека, которая нам понадобится для работы с JSON
 from flask import Flask, request
 # Импортируем нужные файлы
-from imgs import *
+from images import *
 
 # создаём приложение
 # мы передаём __name__, в нём содержится информация,
