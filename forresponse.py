@@ -1,6 +1,4 @@
-# класс упрощающий написание JSON ответа
-class Response:
-    # инициализация
+class EasyResponse:
     def __init__(self, request):
         # заголовок ответа
         self.res = {

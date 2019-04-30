@@ -2,7 +2,7 @@ from flask import request
 import logging
 import json
 from useractions import User
-from forresponse import Response
+from forresponse import EasyResponse
 from images import Image
 from dialogs import Dialogs as di
 
@@ -64,12 +64,7 @@ def handle_dialog(res, req):
 def Greeting_room(res, req, user, command):
     user.room = 1
     if command == di.SHOW_ROOM:
-        if not user.seif:
-            res.setImage(di.G, Image.GREETING_ROOM)
-        elif not user.key:
-            res.setImage('Комната с открытым сейфом с ключём внутри', Image.Greeting_room_SEIF_OPENED_KEY)
-        else:
-            res.setImage('Комната с пустым открытым сейфом', Image.Greeting_room_SEIF_OPENED)
+        res.setImage(di.GREETING_ROOM, Image.GREETING_ROOM)
     if command == 'обыскать стол':
         res.addText('Что-ж, ничего.')
 
@@ -102,11 +97,4 @@ def get_first_name(req):
             return entity['value'].get('first_name', None)
 
 # Может пригодится
-# поиск названия города в запросе пользователя
-# def get_city(req):
-#     # перебираем именованные сущности
-#     for entity in req['request']['nlu']['entities']:
-#         # если тип YANDEX.GEO, то пытаемся получить город(city), если нет, то возвращаем None
-#         if entity['type'] == 'YANDEX.GEO':
-#             # возвращаем None, если не нашли сущности с типом YANDEX.GEO
-#             return entity['value'].get('city', None)
+
