@@ -1,10 +1,11 @@
-from flask import request
-import logging
 import json
-from useractions import User
+import logging
+
+from dialogs import Dialogs as di
+from flask import request
 from forresponse import Response
 from images import Image
-from dialogs import Dialogs as di
+from useractions import User
 
 # создаём словарь, где для каждого пользователя мы будем хранить его данные
 users = {}
@@ -30,7 +31,7 @@ def handle_dialog(res, req):
 
     # если пользователь новый, то просим представиться
     if req['session']['new'] or user_id not in users:
-        res.addText(di.HELLO)
+        res.addAnswer(di.HELLO)
         # создаем класс для хранения информации о пользователе
         user = User()
         # добавляем класс в словарь
@@ -48,49 +49,60 @@ def handle_dialog(res, req):
         first_name = get_first_name(req)
 
         if first_name is None:
-            res.addText(di.REPEAT_PLEASE)
+            res.addAnswer(di.REPEAT_PLEASE)
             return
 
         user.name = first_name
-        res.addText(di.GREETING.format(first_name.title(), first_name.title()))
+        res.addAnswer(di.GREETING.format(first_name.title(), first_name.title()))
         command = None
 
     # обработчик 1 комнаты
     if user.room == 1:
-        Greeting_room(res, req, user, command)
+        SCENE_1(res, req, user, command)
+    elif user.room == 2:
+        SCENE_2(res, req, user, command)
 
 
 # обработчик 1 комнаты
-def Greeting_room(res, req, user, command):
+def SCENE_1(res, req, user, command):
     user.room = 1
     if command == di.SHOW_ROOM:
-        res.addText("Входная комната.")
-        res.setImage(di.GREETING_ROOM, Image.GREETING_ROOM)
-        if not user.table:
-            res.addText('\n' + di.CHECK_TABLE)
+        res.addAnswer(di.SCENE_1)
+        res.addImage(di.SCENE_1, Image.SCENE_1)
+        res.addButton(di.CHECK_TABLE)
+    elif command == di.CHECK_TABLE:
+        if user.table:
+            res.addAnswer(di.NOTHING_2)
+        else:
+            res.addAnswer(di.NOTHING)
             res.addButton(di.CHECK_TABLE)
             user.table = True
-    if command == di.CHECK_TABLE:
-        res.addText(di.NOTHING)
     elif command == di.GO_FURTHER:
-        res.addText(di.SCENE_2)
-        SCENE_2(res, req, user, None)
+        SCENE_2(res, req, user, di.GO_FURTHER)
         return
     else:
         if command:
-            res.addText(di.I_DO_NOT_UNDERSTAND)
-        res.addText("Входная комната.")
-        res.addText("Ваши действия:\n")
+            res.addAnswer(di.I_DO_NOT_UNDERSTAND)
+        res.addAnswer(di.SCENE_1)
+        res.addAnswer(di.YOUR_ACTIONS + "\n")
     res.addButton(di.SHOW_ROOM)
-    res.addButton('пойти дальше')
+    res.addButton(di.GO_FURTHER)
 
 
 def SCENE_2(res, req, user, command):
     user.room = 2
-    if command == di.SHOW_ROOM:
-        res.addText("scene_2")
-        res.setImage(di.SCENE_2, Image.SCENE_2)
+    if command == di.GO_FURTHER:
+        res.addAnswer(di.GO + di.SCENE_2)
+    elif command == di.SHOW_ROOM:
+        res.addAnswer(di.SCENE_2)
+        res.addImage(di.SCENE_2, Image.SCENE_2)
+    else:
+        if command:
+            res.addAnswer(di.I_DO_NOT_UNDERSTAND)
+            res.addAnswer(di.SCENE_1)
+            res.addAnswer(di.YOUR_ACTIONS + "\n")
     res.addButton(di.SHOW_ROOM)
+    # res.addButton
 
 
 # поиск имени пользователя в запросе пользователя

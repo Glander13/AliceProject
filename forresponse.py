@@ -10,20 +10,13 @@ class Response:
         }
 
     # добавление текста
-    def addText(self, text):
-        # если текста еще нет, то задает, иначе добавляем
+    def addAnswer(self, text):
         if not 'text' in self.res['response']:
             self.res['response']['text'] = text
         else:
             self.res['response']['text'] += ' ' + text
-
-    # задание текста
-    def setText(self, text):
-        self.res['response']['text'] = text
-
     # добавление кнопки или ссылки
     def addButton(self, title, url=None):
-        # если списка кнопок еще нет, то создаем
         if not 'buttons' in self.res['response']:
             self.res['response']['buttons'] = []
 
@@ -34,12 +27,11 @@ class Response:
             button['hide'] = False
         else:
             button['hide'] = True
-
         # добавляем кнопку в список
         self.res['response']['buttons'].append(button)
 
     # добавляем изображение по ID
-    def setImage(self, title, id):
+    def addImage(self, title, id):
         self.res['response']['card'] = {}
         self.res['response']['card']['type'] = 'BigImage'
         self.res['response']['card']['title'] = title
@@ -48,3 +40,4 @@ class Response:
     # добавляем завершение сеанса
     def endSession(self):
         self.res['response']['end_session'] = True
+
