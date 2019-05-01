@@ -24,6 +24,18 @@ def main():
     return json.dumps(response.res)
 
 
+# поиск имени пользователя в запросе пользователя
+def get_first_name(req):
+    # перебираем сущности
+    for entity in req['request']['nlu']['entities']:
+        # находим сущность с типом 'YANDEX.FIO'
+        if entity['type'] == 'YANDEX.FIO':
+            # Если есть сущность с ключом 'first_name',
+            # то возвращаем ее значение.
+            # Во всех остальных случаях возвращаем None.
+            return entity['value'].get('first_name', None)
+
+
 # обработка запроса
 def handle_dialog(res, req):
     # ID пользователя
@@ -63,6 +75,13 @@ def handle_dialog(res, req):
         SCENE_2(res, req, user, command)
 
 
+def error_command(res, command, scene_command):
+    if command:
+        res.addAnswer(di.I_DO_NOT_UNDERSTAND)
+    res.addAnswer(scene_command)
+    res.addAnswer(di.YOUR_ACTIONS + "\n")
+
+
 # обработчик 1 комнаты
 def SCENE_1(res, req, user, command):
     user.room = 1
@@ -70,6 +89,8 @@ def SCENE_1(res, req, user, command):
         res.addAnswer(di.SCENE_1)
         res.addImage(di.SCENE_1, Image.SCENE_1)
         res.addButton(di.CHECK_TABLE)
+    elif command == di.RETURN:
+        res.addAnswer(di.YOU_RETURNED)
     elif command == di.CHECK_TABLE:
         if user.table:
             res.addAnswer(di.NOTHING_2)
@@ -81,10 +102,7 @@ def SCENE_1(res, req, user, command):
         SCENE_2(res, req, user, di.GO_FURTHER)
         return
     else:
-        if command:
-            res.addAnswer(di.I_DO_NOT_UNDERSTAND)
-        res.addAnswer(di.SCENE_1)
-        res.addAnswer(di.YOUR_ACTIONS + "\n")
+        error_command(res, command, di.SCENE_1)
     res.addButton(di.SHOW_ROOM)
     res.addButton(di.GO_FURTHER)
 
@@ -92,26 +110,14 @@ def SCENE_1(res, req, user, command):
 def SCENE_2(res, req, user, command):
     user.room = 2
     if command == di.GO_FURTHER:
-        res.addAnswer(di.GO + di.SCENE_2)
+        res.addAnswer(di.GO + "на" + di.SCENE_2)
     elif command == di.SHOW_ROOM:
         res.addAnswer(di.SCENE_2)
         res.addImage(di.SCENE_2, Image.SCENE_2)
+    elif command == di.RETURN:
+        SCENE_1(res, req, user, di.RETURN)
+        return
     else:
-        if command:
-            res.addAnswer(di.I_DO_NOT_UNDERSTAND)
-            res.addAnswer(di.SCENE_1)
-            res.addAnswer(di.YOUR_ACTIONS + "\n")
+        error_command(res, command, di.SCENE_2)
     res.addButton(di.SHOW_ROOM)
-    # res.addButton
-
-
-# поиск имени пользователя в запросе пользователя
-def get_first_name(req):
-    # перебираем сущности
-    for entity in req['request']['nlu']['entities']:
-        # находим сущность с типом 'YANDEX.FIO'
-        if entity['type'] == 'YANDEX.FIO':
-            # Если есть сущность с ключом 'first_name',
-            # то возвращаем ее значение.
-            # Во всех остальных случаях возвращаем None.
-            return entity['value'].get('first_name', None)
+    res.addButton(di.RETURN)
