@@ -67,17 +67,19 @@ def handle_dialog(res, req):
         user.name = first_name
         res.addAnswer(di.GREETING.format(first_name.title(), first_name.title()))
         command = None
-
-    if user.scene == 1:
-        SCENE_1(res, req, user, command)
-    elif user.scene == 2:
-        SCENE_2(res, req, user, command)
-    elif user.scene == 3:
-        SCENE_3(res, req, user, command)
-    elif user.scene == 5:
-        SCENE_5(res, req, user, command)
-    elif user.scene == 4:
-        SCENE_4(res, req, user, command, user.scene_4_from_scene)
+    if not user.end:
+        if user.scene == 1:
+            SCENE_1(res, req, user, command)
+        elif user.scene == 2:
+            SCENE_2(res, req, user, command)
+        elif user.scene == 3:
+            SCENE_3(res, req, user, command)
+        elif user.scene == 5:
+            SCENE_5(res, req, user, command)
+        elif user.scene == 4:
+            SCENE_4(res, req, user, command, user.scene_4_from_scene)
+    elif user.game_over:
+        res.addAnswer('К сожаленью, вы проиграли.')
 
 
 def error_command(res, command, scene_command):
@@ -218,7 +220,19 @@ def SCENE_5(res, req, user, command):
     elif command == di.RETURN:
         SCENE_4(res, req, user, None)
         return
+    elif command == di.I_AM_SURE:
+        res.addAnswer(di.DEATH_SCENE)
+        user.game_over = True
+        user.end = True
+    elif command == di.NO:
+        res.addAnswer(di.YOU_RIGHT)
+    elif command == di.GO_TO_NOT_SAFE_ZONE:
+        res.addAnswer(di.ARE_YOU_SURE)
+        res.addButton(di.I_AM_SURE)
+        res.addButton(di.NO)
     else:
         error_command(res, command, di.SCENE_5)
-    res.addButton(di.SHOW_SCENE)
-    res.addButton(di.RETURN)
+    if not user.end:
+        res.addButton(di.SHOW_SCENE)
+        res.addButton(di.RETURN)
+        res.addButton(di.GO_TO_NOT_SAFE_ZONE)

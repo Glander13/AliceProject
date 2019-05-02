@@ -15,6 +15,7 @@ class Response:
             self.res['response']['text'] = text
         else:
             self.res['response']['text'] += ' ' + text
+
     # добавление кнопки или ссылки
     def addButton(self, title, url=None):
         if not 'buttons' in self.res['response']:
@@ -36,8 +37,3 @@ class Response:
         self.res['response']['card']['type'] = 'BigImage'
         self.res['response']['card']['title'] = title
         self.res['response']['card']['image_id'] = id
-
-    # добавляем завершение сеанса
-    def endSession(self):
-        self.res['response']['end_session'] = True
-
