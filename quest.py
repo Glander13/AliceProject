@@ -36,6 +36,19 @@ def get_first_name(req):
             return entity['value'].get('first_name', None)
 
 
+def new_game(user):
+    user.name = None
+    user.scene = 1
+    user.scene_4_from_scene = None
+    user.table = False
+    user.images = False
+    user.morse = False
+    user.chester = False
+    user.ready_to_die = False
+    user.game_over = False
+    user.end = False
+
+
 # обработка запроса
 def handle_dialog(res, req):
     # ID пользователя
@@ -79,7 +92,10 @@ def handle_dialog(res, req):
         elif user.scene == 4:
             SCENE_4(res, req, user, command, user.scene_4_from_scene)
     elif user.game_over:
-        res.addAnswer('К сожаленью, вы проиграли.')
+        if command == di.NEW_GAME:
+            res.addAnswer(di.HELLO)
+            new_game(user)
+            return
 
 
 def error_command(res, command, scene_command):
@@ -224,6 +240,7 @@ def SCENE_5(res, req, user, command):
         res.addAnswer(di.DEATH_SCENE)
         user.game_over = True
         user.end = True
+        res.addButton(di.NEW_GAME)
     elif command == di.NO:
         res.addAnswer(di.YOU_RIGHT)
     elif command == di.GO_TO_NOT_SAFE_ZONE:
