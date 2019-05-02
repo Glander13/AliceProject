@@ -132,23 +132,23 @@ def SCENE_2(res, req, user, command):
 def SCENE_31(res, req, user, command):
     user.room = 31
     if command == di.GO_FURTHER:
-        res.addAnswer(
-            "Еще не сделал эту комнату"
-        )
+        res.addAnswer("Еще не сделал эту комнату")
     elif command == di.SHOW_ROOM:
         res.addAnswer(di.SCENE_31)
         res.addImage(di.SCENE_31, Image.SCENE_31)
-    elif command == di.TRY_IT_YOURSELF:
+    elif command == di.TRY_UNDERSTAND_IT_YOURSELF:
         res.addAnswer(di.TRYING)
     elif command == di.USE_ALICE:
-        res.addAnswer(di.USE_ALICE)
+        res.addAnswer(di.USING_ALICE)
         user.morse = True
     elif command == di.CONSIDER_PICTERS:
         res.addAnswer(di.ANALISE_PICTERS)
-        if not user.morse:
-            res.addButton(di.TRY_IT_YOURSELF)
-            res.addButton(di.USE_ALICE)
+        user.images = True
     else:
         error_command(res, command, di.SCENE_31)
+    if not user.images:
+        res.addButton(di.CONSIDER_PICTERS)
+    elif not user.morse:
+        res.addButton(di.TRY_UNDERSTAND_IT_YOURSELF)
+        res.addButton(di.USE_ALICE)
     res.addButton(di.SHOW_ROOM)
-    res.addButton(di.CONSIDER_PICTERS)
