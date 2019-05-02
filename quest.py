@@ -68,12 +68,16 @@ def handle_dialog(res, req):
         res.addAnswer(di.GREETING.format(first_name.title(), first_name.title()))
         command = None
 
-    if user.room == 1:
+    if user.scene == 1:
         SCENE_1(res, req, user, command)
-    elif user.room == 2:
+    elif user.scene == 2:
         SCENE_2(res, req, user, command)
-    elif user.room == 31:
-        SCENE_31(res, req, user, command)
+    elif user.scene == 3:
+        SCENE_3(res, req, user, command)
+    elif user.scene == 5:
+        SCENE_5(res, req, user, command)
+    elif user.scene == 4:
+        SCENE_4(res, req, user, command, user.scene_4_from_scene)
 
 
 def error_command(res, command, scene_command):
@@ -85,8 +89,8 @@ def error_command(res, command, scene_command):
 
 # обработчик 1 комнаты
 def SCENE_1(res, req, user, command):
-    user.room = 1
-    if command == di.SHOW_ROOM:
+    user.scene = 1
+    if command == di.SHOW_SCENE:
         res.addAnswer(di.SCENE_1)
         res.addImage(di.SCENE_1, Image.SCENE_1)
         res.addButton(di.CHECK_TABLE)
@@ -105,50 +109,116 @@ def SCENE_1(res, req, user, command):
         return
     else:
         error_command(res, command, di.SCENE_1)
-    res.addButton(di.SHOW_ROOM)
     res.addButton(di.GO_FURTHER)
+    res.addButton(di.SHOW_SCENE)
 
 
 def SCENE_2(res, req, user, command):
-    user.room = 2
+    user.scene = 2
     if command == di.GO_FURTHER:
-        res.addAnswer(di.GO + "на" + di.SCENE_2)
-    elif command == di.SHOW_ROOM:
+        SCENE_4(res, req, user, None, 2)
+        user.scene_4_from_scene = 2
+        return
+    elif command == di.SHOW_SCENE:
         res.addAnswer(di.SCENE_2)
         res.addImage(di.SCENE_2, Image.SCENE_2)
     elif command == di.RETURN:
         SCENE_1(res, req, user, None)
         return
     elif command == di.GO_TO_THE_STAND_WITH_PICTS:
-        SCENE_31(res, req, user, None)
+        SCENE_3(res, req, user, None)
         return
     else:
         error_command(res, command, di.SCENE_2)
-    res.addButton(di.SHOW_ROOM)
+    res.addButton(di.GO_FURTHER)
+    res.addButton(di.SHOW_SCENE)
     res.addButton(di.RETURN)
     res.addButton(di.GO_TO_THE_STAND_WITH_PICTS)
 
 
-def SCENE_31(res, req, user, command):
-    user.room = 31
+def SCENE_3(res, req, user, command):
+    user.scene = 3
     if command == di.GO_FURTHER:
-        res.addAnswer(
-            "Еще не сделал эту комнату"
-        )
-    elif command == di.SHOW_ROOM:
-        res.addAnswer(di.SCENE_31)
-        res.addImage(di.SCENE_31, Image.SCENE_31)
-    elif command == di.TRY_IT_YOURSELF:
+        SCENE_4(res, req, user, None, 3)
+        user.scene_4_from_scene = 3
+        return
+    elif command == di.SHOW_SCENE:
+        res.addAnswer(di.SCENE_3)
+        res.addImage(di.SCENE_3, Image.SCENE_3)
+        if not user.images:
+            res.addButton(di.CONSIDER_PICTERS)
+    elif command == di.TRY_UNDERSTAND_IT_YOURSELF:
         res.addAnswer(di.TRYING)
     elif command == di.USE_ALICE:
-        res.addAnswer(di.USE_ALICE)
+        res.addAnswer(di.USING_ALICE)
         user.morse = True
     elif command == di.CONSIDER_PICTERS:
         res.addAnswer(di.ANALISE_PICTERS)
-        if not user.morse:
-            res.addButton(di.TRY_IT_YOURSELF)
-            res.addButton(di.USE_ALICE)
+        user.images = True
+    elif command == di.RETURN:
+        SCENE_2(res, req, user, None)
+        return
     else:
-        error_command(res, command, di.SCENE_31)
-    res.addButton(di.SHOW_ROOM)
-    res.addButton(di.CONSIDER_PICTERS)
+        error_command(res, command, di.SCENE_3)
+    if not user.morse and user.images:
+        res.addButton(di.TRY_UNDERSTAND_IT_YOURSELF)
+        res.addButton(di.USE_ALICE)
+    res.addButton(di.GO_FURTHER)
+    res.addButton(di.SHOW_SCENE)
+    res.addButton(di.RETURN)
+
+
+def SCENE_4(res, req, user, command, from_scene):
+    user.scene = 4
+    if command == di.GO_FURTHER:
+        SCENE_5(res, req, user, None)
+        return
+    elif command == di.SHOW_SCENE:
+        res.addAnswer(di.SCENE_4)
+        res.addImage(di.SCENE_4, Image.SCENE_4)
+        res.addButton(di.ANALISE_PORTRAIT)
+    elif command == di.RETURN:
+        if from_scene == 3:
+            SCENE_3(res, req, user, None)
+            return
+        elif from_scene == 2:
+            SCENE_2(res, req, user, None)
+            return
+    elif command == di.RETURN_TO_SCENE_2:
+        SCENE_2(res, req, user, None)
+        return
+    elif command == di.RETURN_TO_SCENE_3:
+        SCENE_3(res, req, user, None)
+        return
+    elif command == di.ASK_ALICE_ABOUT_PORTRAIT:
+        res.addAnswer(di.ALAN_CHESTER)
+        user.chester = True
+    elif command == di.ANALISE_PORTRAIT:
+        if not user.chester:
+            res.addAnswer(di.WHO_IS)
+            res.addButton(di.ASK_ALICE_ABOUT_PORTRAIT)
+        else:
+            res.addAnswer(di.HOW_SAID_ALICE)
+    else:
+        error_command(res, command, di.SCENE_4)
+    res.addButton(di.GO_FURTHER)
+    if from_scene == 3:
+        res.addButton(di.RETURN_TO_SCENE_2)
+    else:
+        res.addButton(di.RETURN_TO_SCENE_3)
+    res.addButton(di.SHOW_SCENE)
+    res.addButton(di.RETURN)
+
+
+def SCENE_5(res, req, user, command):
+    user.scene = 5
+    if command == di.SHOW_SCENE:
+        res.addAnswer(di.SCENE_5)
+        res.addImage(di.SCENE_5, Image.SCENE_5)
+    elif command == di.RETURN:
+        SCENE_4(res, req, user, None)
+        return
+    else:
+        error_command(res, command, di.SCENE_5)
+    res.addButton(di.SHOW_SCENE)
+    res.addButton(di.RETURN)
