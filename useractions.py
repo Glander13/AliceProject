@@ -8,6 +8,7 @@ class User:
         self.images = False
         self.morse = False
         self.chester = False
+        self.paper_with_cords = False
         self.keys = False
         self.ready_to_die = False
         self.game_over = False

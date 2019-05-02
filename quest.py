@@ -269,17 +269,16 @@ def SCENE_6(res, req, user, command):
     if command == di.SHOW_SCENE:
         res.addAnswer(di.SCENE_6)
         res.addImage(di.SCENE_6, Image.SCENE_6)
-        res.addButton(di.LOOK_WARDROBE)
-        res.addButton(di.CHECK_TABLE)
     elif command == di.LOOK_WARDROBE:
         user.keys = True
         res.addAnswer(di.LOOKING_WARDROBE)
     elif command == di.CHECK_TABLE:
         res.addAnswer(di.CHECKING_TABLE)
-        res.addButton(di.USE_ALICE)
+        res.addButton(di.USE_ALICE, di.URL_FOR_ALICE)
         res.addButton(di.TRY_UNDERSTAND_IT_YOURSELF)
     elif command == di.USE_ALICE:
-        res.addAnswer("текст")
+        user.paper_with_cords = True
+        res.addAnswer(di.YOU_GET_CORDS)
     elif command == di.TRY_UNDERSTAND_IT_YOURSELF:
         res.addAnswer(di.TRYING)
     elif command == di.RETURN:
@@ -289,6 +288,10 @@ def SCENE_6(res, req, user, command):
         error_command(res, command, di.SCENE_6)
     res.addButton(di.SHOW_SCENE)
     res.addButton(di.RETURN)
+    if not user.paper_with_cords:
+        res.addButton(di.CHECK_TABLE)
+    if not user.keys:
+        res.addButton(di.LOOK_WARDROBE)
 
 
 def SCENE_7(res, req, user, command):

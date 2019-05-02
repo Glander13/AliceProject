@@ -25,9 +25,7 @@ class Response:
         button['title'] = title
         if url:
             button['url'] = url
-            button['hide'] = False
-        else:
-            button['hide'] = True
+        button['hide'] = True
         # добавляем кнопку в список
         self.res['response']['buttons'].append(button)
 
