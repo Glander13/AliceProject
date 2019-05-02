@@ -7,19 +7,14 @@ from forresponse import Response
 from images import Image
 from useractions import User
 
-# создаём словарь, где для каждого пользователя мы будем хранить его данные
+# создаём словарь, хранящий данные пользователя
 users = {}
 
 
-# начало обработки запроса от Алисы
 def main():
-    # выводим запрос в лог
     logging.info('Request: %r', request.json)
-    # создаем начальный ответ
     response = Response(request)
-    # обрабатываем запрос
     handle_dialog(response, request.json)
-    # логирование
     logging.info('Response: %r', response)
     return json.dumps(response.res)
 
@@ -36,6 +31,7 @@ def get_first_name(req):
             return entity['value'].get('first_name', None)
 
 
+# новая игра (игра занова)
 def new_game(user):
     user.name = None
     user.scene = 1
@@ -87,10 +83,14 @@ def handle_dialog(res, req):
             SCENE_2(res, req, user, command)
         elif user.scene == 3:
             SCENE_3(res, req, user, command)
-        elif user.scene == 5:
-            SCENE_5(res, req, user, command)
         elif user.scene == 4:
             SCENE_4(res, req, user, command, user.scene_4_from_scene)
+        elif user.scene == 5:
+            SCENE_5(res, req, user, command)
+        elif user.scene == 6:
+            SCENE_6(res, req, user, command)
+        elif user.scene == 7:
+            SCENE_7(res, req, user, command)
     elif user.game_over:
         if command == di.NEW_GAME:
             res.addAnswer(di.HELLO)
@@ -98,6 +98,7 @@ def handle_dialog(res, req):
             return
 
 
+# несуществующая команда
 def error_command(res, command, scene_command):
     if command:
         res.addAnswer(di.I_DO_NOT_UNDERSTAND)
@@ -105,7 +106,7 @@ def error_command(res, command, scene_command):
     res.addAnswer(di.YOUR_ACTIONS + "\n")
 
 
-# обработчик 1 комнаты
+# обработчик 1 сцены
 def SCENE_1(res, req, user, command):
     user.scene = 1
     if command == di.SHOW_SCENE:
@@ -247,9 +248,58 @@ def SCENE_5(res, req, user, command):
         res.addAnswer(di.ARE_YOU_SURE)
         res.addButton(di.I_AM_SURE)
         res.addButton(di.NO)
+    elif command == di.GO_TO_THE_LEFT:
+        SCENE_6(res, req, user, None)
+        return
+    elif command == di.GO_TO_THE_RIGHT:
+        SCENE_7(res, req, user, None)
+        return
     else:
         error_command(res, command, di.SCENE_5)
     if not user.end:
+        res.addButton(di.GO_TO_THE_LEFT)
+        res.addButton(di.GO_TO_NOT_SAFE_ZONE)
+        res.addButton(di.GO_TO_THE_RIGHT)
         res.addButton(di.SHOW_SCENE)
         res.addButton(di.RETURN)
-        res.addButton(di.GO_TO_NOT_SAFE_ZONE)
+
+
+def SCENE_6(res, req, user, command):
+    user.scene = 6
+    if command == di.SHOW_SCENE:
+        res.addAnswer(di.SCENE_6)
+        res.addImage(di.SCENE_6, Image.SCENE_6)
+        res.addButton(di.LOOK_WARDROBE)
+        res.addButton(di.CHECK_TABLE)
+    elif command == di.LOOK_WARDROBE:
+        user.keys = True
+        res.addAnswer(di.LOOKING_WARDROBE)
+    elif command == di.CHECK_TABLE:
+        res.addAnswer(di.CHECKING_TABLE)
+        res.addButton(di.USE_ALICE)
+        res.addButton(di.TRY_UNDERSTAND_IT_YOURSELF)
+    elif command == di.USE_ALICE:
+        res.addAnswer("текст")
+    elif command == di.TRY_UNDERSTAND_IT_YOURSELF:
+        res.addAnswer(di.TRYING)
+    elif command == di.RETURN:
+        SCENE_5(res, req, user, None)
+        return
+    else:
+        error_command(res, command, di.SCENE_6)
+    res.addButton(di.SHOW_SCENE)
+    res.addButton(di.RETURN)
+
+
+def SCENE_7(res, req, user, command):
+    user.scene = 7
+    if command == di.SHOW_SCENE:
+        res.addAnswer(di.SCENE_7)
+        res.addImage(di.SCENE_7, Image.SCENE_7)
+    elif command == di.RETURN:
+        SCENE_5(res, req, user, None)
+        return
+    else:
+        error_command(res, command, di.SCENE_7)
+    res.addButton(di.SHOW_SCENE)
+    res.addButton(di.RETURN)
