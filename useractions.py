@@ -4,7 +4,9 @@ class User:
         self.name = None
         self.scene = 1
         self.scene_4_from_scene = None
-        self.table = False
+        self.paper_with_box = False
+        self.box = False
+        self.open_box = False
         self.images = False
         self.morse = False
         self.chester = False

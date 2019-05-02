@@ -112,17 +112,29 @@ def SCENE_1(res, req, user, command):
     if command == di.SHOW_SCENE:
         res.addAnswer(di.SCENE_1)
         res.addImage(di.SCENE_1, Image.SCENE_1)
-        res.addButton(di.CHECK_TABLE)
+        if not user.paper_with_box:
+            res.addButton(di.CHECK_TABLE)
+        if not user.box and user.paper_with_box:
+            res.addButton(di.GET_BOX)
     elif command == di.RETURN:
         res.addAnswer(di.YOU_RETURNED)
-
     elif command == di.CHECK_TABLE:
-        if user.table:
-            res.addAnswer(di.NOTHING_2)
-        else:
-            res.addAnswer(di.NOTHING)
-            res.addButton(di.CHECK_TABLE)
-            user.table = True
+        res.addAnswer(di.SOMETHING_INTERESTING)
+        res.addButton(di.READ_PAPER)
+    elif command == di.GET_BOX:
+        res.addAnswer(di.YOU_GET_BOX)
+        if user.keys:
+            res.addButton(di.TRY_OPEN_BOX)
+        user.box = True
+    elif command == di.READ_PAPER:
+        res.addAnswer(di.TEXT_FOR_BOX)
+        user.paper_with_box = True
+        if not user.box and user.paper_with_box and not user.keys:
+            res.addButton(di.GET_BOX)
+        if user.keys:
+            res.addButton(di.TRY_OPEN_BOX)
+    elif command == di.TRY_OPEN_BOX:
+        res.addAnswer(di.MESSAGE_FROM_BOX)
     elif command == di.GO_FURTHER:
         SCENE_2(res, req, user, None)
         return
@@ -235,7 +247,7 @@ def SCENE_5(res, req, user, command):
         res.addAnswer(di.SCENE_5)
         res.addImage(di.SCENE_5, Image.SCENE_5)
     elif command == di.RETURN:
-        SCENE_4(res, req, user, None)
+        SCENE_4(res, req, user, None, user.scene_4_from_scene)
         return
     elif command == di.I_AM_SURE:
         res.addAnswer(di.DEATH_SCENE)
@@ -272,6 +284,11 @@ def SCENE_6(res, req, user, command):
     elif command == di.LOOK_WARDROBE:
         user.keys = True
         res.addAnswer(di.LOOKING_WARDROBE)
+        if user.box:
+            res.addButton(di.TRY_OPEN_BOX)
+    elif command == di.TRY_OPEN_BOX:
+        res.addAnswer(di.MESSAGE_FROM_BOX)
+        user.open_box = False
     elif command == di.CHECK_TABLE:
         res.addAnswer(di.CHECKING_TABLE)
         res.addButton(di.USE_ALICE, di.URL_FOR_ALICE)
