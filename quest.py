@@ -68,11 +68,12 @@ def handle_dialog(res, req):
         res.addAnswer(di.GREETING.format(first_name.title(), first_name.title()))
         command = None
 
-    # обработчик 1 комнаты
     if user.room == 1:
         SCENE_1(res, req, user, command)
     elif user.room == 2:
         SCENE_2(res, req, user, command)
+    elif user.room == 31:
+        SCENE_31(res, req, user, command)
 
 
 def error_command(res, command, scene_command):
@@ -91,6 +92,7 @@ def SCENE_1(res, req, user, command):
         res.addButton(di.CHECK_TABLE)
     elif command == di.RETURN:
         res.addAnswer(di.YOU_RETURNED)
+
     elif command == di.CHECK_TABLE:
         if user.table:
             res.addAnswer(di.NOTHING_2)
@@ -99,7 +101,7 @@ def SCENE_1(res, req, user, command):
             res.addButton(di.CHECK_TABLE)
             user.table = True
     elif command == di.GO_FURTHER:
-        SCENE_2(res, req, user, di.GO_FURTHER)
+        SCENE_2(res, req, user, None)
         return
     else:
         error_command(res, command, di.SCENE_1)
@@ -115,9 +117,38 @@ def SCENE_2(res, req, user, command):
         res.addAnswer(di.SCENE_2)
         res.addImage(di.SCENE_2, Image.SCENE_2)
     elif command == di.RETURN:
-        SCENE_1(res, req, user, di.RETURN)
+        SCENE_1(res, req, user, None)
+        return
+    elif command == di.GO_TO_THE_STAND_WITH_PICTS:
+        SCENE_31(res, req, user, None)
         return
     else:
         error_command(res, command, di.SCENE_2)
     res.addButton(di.SHOW_ROOM)
     res.addButton(di.RETURN)
+    res.addButton(di.GO_TO_THE_STAND_WITH_PICTS)
+
+
+def SCENE_31(res, req, user, command):
+    user.room = 31
+    if command == di.GO_FURTHER:
+        res.addAnswer(
+            "Еще не сделал эту комнату"
+        )
+    elif command == di.SHOW_ROOM:
+        res.addAnswer(di.SCENE_31)
+        res.addImage(di.SCENE_31, Image.SCENE_31)
+    elif command == di.TRY_IT_YOURSELF:
+        res.addAnswer(di.TRYING)
+    elif command == di.USE_ALICE:
+        res.addAnswer(di.USE_ALICE)
+        user.morse = True
+    elif command == di.CONSIDER_PICTERS:
+        res.addAnswer(di.ANALISE_PICTERS)
+        if not user.morse:
+            res.addButton(di.TRY_IT_YOURSELF)
+            res.addButton(di.USE_ALICE)
+    else:
+        error_command(res, command, di.SCENE_31)
+    res.addButton(di.SHOW_ROOM)
+    res.addButton(di.CONSIDER_PICTERS)

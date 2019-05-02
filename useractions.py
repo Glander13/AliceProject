@@ -4,3 +4,4 @@ class User:
         self.name = None
         self.room = 1
         self.table = False
+        self.morse = False
