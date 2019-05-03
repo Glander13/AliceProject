@@ -1,5 +1,6 @@
 import json
 import logging
+
 import requests
 from dialogs import Dialogs as di
 from flask import request
@@ -316,7 +317,8 @@ def SCENE_5(res, req, user, command):
         # введите код
         res.addAnswer(di.INPUT_THE_CODE)
     # если код верный
-    elif command == di.CODE_FOR_SAFE and user.thirst_paper and user.second_paper and user.third_paper and not user.all_papers:
+    elif command == di.CODE_FOR_SAFE and user.thirst_paper and user.second_paper \
+            and user.third_paper and not user.all_papers:
         res.addAnswer(di.YOU_OPENED_SAFE)
         user.safe_opened = True
         user.all_papers = True
