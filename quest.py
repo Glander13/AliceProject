@@ -45,7 +45,10 @@ def translate(lang, text):
 # новая игра (игра занова)
 def new_game(user):
     user.name = None
-    user.scene = 1
+    user.scene = 0
+    user.greeting_2 = False
+    user.greeting_3 = False
+    user.ready = False
     user.scene_4_from_scene = None
     user.read_thirst_paper = False
     user.read_boxpaper = False
@@ -125,11 +128,17 @@ def handle_dialog(res, req):
             res.addAnswer(di.HELLO)
             new_game(user)
             return
+        else:
+            error_command(res, command, di.OVER)
+            res.addButton(di.NEW_GAME)
     elif user.win:
         if command == di.NEW_GAME:
             res.addAnswer(di.HELLO)
             new_game(user)
             return
+        else:
+            error_command(res, command, di.WIN)
+            res.addButton(di.NEW_GAME)
 
 
 # несуществующая команда

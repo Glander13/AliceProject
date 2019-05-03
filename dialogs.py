@@ -192,10 +192,12 @@ class Dialogs:
     # THE END
 
     # GAME OVER
+    OVER = "Проигрыш"
     GAME_OVER = "К сожаленью, вы проиграли."
 
     # WIN GAME
     WIN_GAME = "УРА! УРА! Вы прошли этот квест."
+    WIN = "Победа"
 
     # NEW_GAME
     NEW_GAME = "начать снова"
