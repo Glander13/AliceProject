@@ -98,10 +98,12 @@ def handle_dialog(res, req):
             return
 
         user.name = first_name
-        res.addAnswer(di.GREETING.format(first_name.title(), first_name.title()))
+        res.addAnswer(di.GREETING.format(first_name.title()))
         command = None
     res.addButton(di.HELP)
     if not user.end:
+        if user.scene == 0:
+            SCENE_0(res, req, user, command)
         if user.scene == 1:
             SCENE_1(res, req, user, command)
         elif user.scene == 2:
@@ -136,12 +138,34 @@ def error_command(res, command, scene_command):
         res.addAnswer(di.HELP_TEXT)
     if command and command != di.HELP:
         res.addAnswer(di.I_DO_NOT_UNDERSTAND)
-    res.addAnswer(scene_command)
-    res.addAnswer(di.YOUR_ACTIONS + "\n")
+    if scene_command != di.SCENE_0:
+        res.addAnswer(scene_command)
+        res.addAnswer(di.YOUR_ACTIONS + "\n")
+
+
+def SCENE_0(res, req, user, command):
+    if command == di.CONTINUE and not user.greeting_2:
+        res.addAnswer(di.GREETING_2)
+        user.greeting_2 = True
+    elif command == di.WHY_ME and not user.greeting_3 and user.greeting_2:
+        res.addAnswer(di.GREETING_3.format(user.name.title()))
+        user.greeting_3 = True
+    elif command == di.I_AM_READY and user.greeting_2 and user.greeting_3:
+        SCENE_1(res, req, user, None)
+        return
+    else:
+        error_command(res, command, di.SCENE_0)
+    if not user.greeting_2:
+        res.addButton(di.CONTINUE)
+    if not user.greeting_3 and user.greeting_2:
+        res.addButton(di.WHY_ME)
+    if user.greeting_2 and user.greeting_3:
+        res.addButton(di.I_AM_READY)
 
 
 # обработчик 1 сцены
 def SCENE_1(res, req, user, command):
+    user.scene = 1
     if command == di.SHOW_SCENE:
         res.addAnswer(di.SCENE_1)
         res.addImage(di.SCENE_1, Image.SCENE_1)
@@ -186,11 +210,14 @@ def SCENE_1(res, req, user, command):
     elif command == di.GO_FURTHER:
         SCENE_2(res, req, user, None)
         return
+    elif command == di.I_AM_READY and not user.ready:
+        user.ready = True
+        pass
     else:
         error_command(res, command, di.SCENE_1)
-    user.scene = 1
-    res.addButton(di.GO_FURTHER)
-    res.addButton(di.SHOW_SCENE)
+    if user.ready:
+        res.addButton(di.GO_FURTHER)
+        res.addButton(di.SHOW_SCENE)
 
 
 def SCENE_2(res, req, user, command):
@@ -367,6 +394,8 @@ def SCENE_5(res, req, user, command):
         user.had_readen_paper = True
     elif command == di.HELP:
         res.addAnswer(di.HELP_TEXT)
+        res.addAnswer(di.SCENE_5)
+        res.addAnswer(di.YOUR_ACTIONS + "\n")
     else:
         if command:
             res.addAnswer(di.INCORRECT_CODE_OR_CMD)

@@ -4,10 +4,13 @@ class User:
 
         # имя пользователя
         self.name = None
-
         # сцена, в которой находится пользователь
-        self.scene = 1
+        self.scene = 0
+        #
+        self.greeting_2 = False
+        self.greeting_3 = False
 
+        self.ready = False
         # из какой сцены игрок попал в 4 сцену (либо из 2, либо из 3)
         self.scene_4_from_scene = None
 
