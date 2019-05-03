@@ -58,7 +58,7 @@ def new_game(user):
     user.thirst_paper = False
     user.second_paper = False
     user.third_paper = False
-    user.all_papers = False
+    user.had_readen_paper = False
     user.safe_opened = False
     user.find_gas_mask = False
     user.ready_to_die = False
@@ -312,16 +312,15 @@ def SCENE_5(res, req, user, command):
             # предлагаем сделать это
             res.addButton(di.READ_WARNING)
         # открыть сейф?
-        res.addButton(di.TRY_OPEN_SAFE)
+        # res.addButton(di.TRY_OPEN_SAFE)
     elif command == di.TRY_OPEN_SAFE:
         # введите код
         res.addAnswer(di.INPUT_THE_CODE)
     # если код верный
     elif command == di.CODE_FOR_SAFE and user.thirst_paper and user.second_paper \
-            and user.third_paper and not user.all_papers:
+            and user.third_paper and not user.safe_opened:
         res.addAnswer(di.YOU_OPENED_SAFE)
         user.safe_opened = True
-        user.all_papers = True
     elif command == di.RETURN:
         SCENE_4(res, req, user, None, user.scene_4_from_scene)
         return
@@ -360,17 +359,23 @@ def SCENE_5(res, req, user, command):
         return
     elif command == di.TAKE_PAPER:
         res.addAnswer(di.TEXT_OF_PAPER)
+        user.had_readen_paper = True
     else:
-        error_command(res, command, di.SCENE_5)
+        if command:
+            res.addAnswer(di.INCORRECT_CODE_OR_CMD)
+        res.addAnswer(di.SCENE_5)
+        res.addAnswer(di.YOUR_ACTIONS + "\n")
     if not user.end:
+        if user.thirst_paper and user.second_paper and user.third_paper \
+                and not user.had_readen_paper:
+            res.addAnswer(di.OMG_YOU_FIND_ALL_PAPERS)
+            res.addButton(di.TAKE_PAPER)
+        res.addButton(di.TRY_OPEN_SAFE)
         res.addButton(di.GO_TO_THE_LEFT)
         res.addButton(di.GO_TO_NOT_SAFE_ZONE)
         res.addButton(di.GO_TO_THE_RIGHT)
         res.addButton(di.SHOW_SCENE)
         res.addButton(di.RETURN)
-        if user.thirst_paper and user.second_paper and user.third_paper:
-            res.addAnswer(di.OMG_YOU_FIND_ALL_PAPERS)
-            res.addButton(di.TAKE_PAPER)
         if user.find_gas_mask:
             res.addButton(di.USE_GAS_MASK)
 
@@ -384,6 +389,8 @@ def SCENE_6(res, req, user, command):
         if not user.keys_for_box:
             # пусть посмотрит в шкафу
             res.addButton(di.LOOK_WARDROBE)
+        if user.keys_for_box and user.take_box and not user.opened_box:
+            res.addButton(di.TRY_OPEN_BOX)
     elif command == di.LOOK_WARDROBE:
         # вы нашли ключи от шкатулки
         res.addAnswer(di.LOOKING_WARDROBE)
@@ -416,6 +423,7 @@ def SCENE_7(res, req, user, command):
     elif command == di.LOOK_WARDROBE:
         res.addAnswer(di.YOU_FIND_NEW_PAPER)
         res.addButton(di.READ_PAPER)
+
     # записка, объединяющая остальные
     elif command == di.READ_PAPER:
         res.addAnswer(di.USE_IT_WISELY)
@@ -442,8 +450,8 @@ def FINAL_SCENE(res, req, user, command):
         res.addButton(di.NEW_GAME)
     elif command == di.USA:
         res.addAnswer(di.AMERICAN)
+        user.game_over = True
         user.end = True
-        user.win = True
         # предлагаем начать занова
         res.addButton(di.NEW_GAME)
     else:

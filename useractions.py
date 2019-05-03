@@ -38,7 +38,7 @@ class User:
         self.thirst_paper = False
         self.second_paper = False
         self.third_paper = False
-        self.all_papers = False
+        self.had_readen_paper = False
         # окрыт ли сейф?
         self.safe_opened = False
 
