@@ -14,7 +14,7 @@ class User:
         """
         шкатулка
         """
-
+        self.read_thirst_paper = False
         # прочел ли игрок записку о шкатулке?
         self.read_boxpaper = False
         # взял ли игрок шкатулку?
@@ -39,6 +39,7 @@ class User:
         self.second_paper = False
         self.third_paper = False
         self.had_readen_paper = False
+        self.some_paper = False
         # окрыт ли сейф?
         self.safe_opened = False
 

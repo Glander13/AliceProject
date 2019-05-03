@@ -47,6 +47,7 @@ def new_game(user):
     user.name = None
     user.scene = 1
     user.scene_4_from_scene = None
+    user.read_thirst_paper = False
     user.read_boxpaper = False
     user.take_box = False
     user.keys_for_box = False
@@ -59,6 +60,7 @@ def new_game(user):
     user.second_paper = False
     user.third_paper = False
     user.had_readen_paper = False
+    user.some_paper = False
     user.safe_opened = False
     user.find_gas_mask = False
     user.ready_to_die = False
@@ -98,6 +100,7 @@ def handle_dialog(res, req):
         user.name = first_name
         res.addAnswer(di.GREETING.format(first_name.title(), first_name.title()))
         command = None
+    res.addButton(di.HELP)
     if not user.end:
         if user.scene == 1:
             SCENE_1(res, req, user, command)
@@ -129,7 +132,9 @@ def handle_dialog(res, req):
 
 # несуществующая команда
 def error_command(res, command, scene_command):
-    if command:
+    if command == di.HELP:
+        res.addAnswer(di.HELP_TEXT)
+    if command and command != di.HELP:
         res.addAnswer(di.I_DO_NOT_UNDERSTAND)
     res.addAnswer(scene_command)
     res.addAnswer(di.YOUR_ACTIONS + "\n")
@@ -150,12 +155,12 @@ def SCENE_1(res, req, user, command):
             res.addButton(di.GET_BOX)
     elif command == di.RETURN:
         res.addAnswer(di.YOU_RETURNED)
-    elif command == di.CHECK_TABLE:
+    elif command == di.CHECK_TABLE and not user.read_boxpaper:
         # нашел записку и шкатулку
         res.addAnswer(di.SOMETHING_INTERESTING)
         # прочитать записку?
         res.addButton(di.READ_PAPER)
-    elif command == di.READ_PAPER:
+    elif command == di.READ_PAPER and not user.read_boxpaper:
         # показать текст записки
         res.addAnswer(di.TEXT_FOR_BOX)
         # игрок прочел записку
@@ -164,7 +169,7 @@ def SCENE_1(res, req, user, command):
         if not user.opened_box and user.read_boxpaper and not user.keys_for_box:
             # предлагаем взять шкатулку
             res.addButton(di.GET_BOX)
-    elif command == di.GET_BOX:
+    elif command == di.GET_BOX and not user.opened_box and user.read_boxpaper:
         # вы взяли шкатулку
         res.addAnswer(di.YOU_GET_BOX)
         user.take_box = True
@@ -173,7 +178,7 @@ def SCENE_1(res, req, user, command):
             # предлагаем открыть шкатулку
             res.addButton(di.TRY_OPEN_BOX)
     # игрок решил открыть шкатулку
-    elif command == di.TRY_OPEN_BOX:
+    elif command == di.TRY_OPEN_BOX and not user.third_paper and not user.opened_box:
         # и получил послание
         res.addAnswer(di.MESSAGE_FROM_BOX)
         user.third_paper = True
@@ -224,16 +229,16 @@ def SCENE_3(res, req, user, command):
         if not user.seen_images:
             # предлагаем это сделать
             res.addButton(di.CONSIDER_PICTERS)
-    elif command == di.CONSIDER_PICTERS:
+    elif command == di.CONSIDER_PICTERS and not user.seen_images:
         # говорим, то чтобы он проанализировал то, что было сказано раньше
         res.addAnswer(di.ANALISE_PICTERS)
         user.seen_images = True
     # если игрок пытается разгадать морзе
-    elif command == di.TRY_UNDERSTAND_IT_YOURSELF:
+    elif command == di.TRY_UNDERSTAND_IT_YOURSELF and not user.morse:
         # то, к сожаленью у него не получается
         res.addAnswer(di.TRYING)
     # если же воспользуется Алисой
-    elif command == di.USE_ALICE:
+    elif command == di.USE_ALICE and not user.morse:
         # то получит расшифровку
         res.addAnswer(di.USING_ALICE)
         user.thirst_paper = True
@@ -276,7 +281,7 @@ def SCENE_4(res, req, user, command, from_scene):
     elif command == di.RETURN_TO_SCENE_3:
         SCENE_3(res, req, user, None)
         return
-    elif command == di.ASK_ALICE_ABOUT_PORTRAIT:
+    elif command == di.ASK_ALICE_ABOUT_PORTRAIT and not user.chester:
         res.addAnswer(di.ALAN_CHESTER)
         user.second_paper = True
         user.chester = True
@@ -324,12 +329,12 @@ def SCENE_5(res, req, user, command):
     elif command == di.RETURN:
         SCENE_4(res, req, user, None, user.scene_4_from_scene)
         return
-    elif command == di.READ_WARNING:
+    elif command == di.READ_WARNING and not user.read_warning:
         res.addAnswer(di.TEXT_WARNING_ON_ENGLISH)
         # перевести предупреждение на русский?
         res.addButton(di.TRANSLATE_INTO_RUSSIAN)
     # если игрок перевел
-    elif command == di.TRANSLATE_INTO_RUSSIAN:
+    elif command == di.TRANSLATE_INTO_RUSSIAN and not user.read_warning:
         res.addAnswer(translate("en-ru", di.TEXT_WARNING_ON_ENGLISH))
         user.read_warning = True
     # если игрок решился пойти в опасную зону без противогаза
@@ -339,7 +344,7 @@ def SCENE_5(res, req, user, command):
         res.addButton(di.I_AM_SURE)
         res.addButton(di.NO)
     # игрок проиграл
-    elif command == di.I_AM_SURE:
+    elif command == di.I_AM_SURE and not user.game_over:
         res.addAnswer(di.DEATH_SCENE)
         user.game_over = True
         user.end = True
@@ -360,6 +365,8 @@ def SCENE_5(res, req, user, command):
     elif command == di.TAKE_PAPER:
         res.addAnswer(di.TEXT_OF_PAPER)
         user.had_readen_paper = True
+    elif command == di.HELP:
+        res.addAnswer(di.HELP_TEXT)
     else:
         if command:
             res.addAnswer(di.INCORRECT_CODE_OR_CMD)
@@ -391,14 +398,14 @@ def SCENE_6(res, req, user, command):
             res.addButton(di.LOOK_WARDROBE)
         if user.keys_for_box and user.take_box and not user.opened_box:
             res.addButton(di.TRY_OPEN_BOX)
-    elif command == di.LOOK_WARDROBE:
+    elif command == di.LOOK_WARDROBE and not user.keys_for_box:
         # вы нашли ключи от шкатулки
         res.addAnswer(di.LOOKING_WARDROBE)
         user.keys_for_box = True
         # если игрок ещё не открыл шкатулку и она у него есть
         if not user.opened_box and user.take_box:
             res.addButton(di.TRY_OPEN_BOX)
-    elif command == di.TRY_OPEN_BOX:
+    elif command == di.TRY_OPEN_BOX and user.keys_for_box and user.take_box and not user.opened_box:
         res.addAnswer(di.MESSAGE_FROM_BOX)
         user.third_paper = True
         user.opened_box = True
@@ -423,14 +430,14 @@ def SCENE_7(res, req, user, command):
     elif command == di.LOOK_WARDROBE:
         res.addAnswer(di.YOU_FIND_NEW_PAPER)
         res.addButton(di.READ_PAPER)
-
     # записка, объединяющая остальные
-    elif command == di.READ_PAPER:
+    elif command == di.READ_PAPER and not user.some_paper:
         res.addAnswer(di.USE_IT_WISELY)
-    elif command == di.TRY_OPEN_TABELS:
+        user.some_paper = True
+    elif command == di.TRY_OPEN_TABELS and not user.find_gas_mask and user.safe_opened:
         res.addAnswer(di.YOU_FIND_GAS_MASK)
-        user.find_gas_mask = True
         res.addButton(di.READ_PAPER)
+        user.find_gas_mask = True
     elif command == di.RETURN:
         SCENE_5(res, req, user, None)
         return
@@ -442,13 +449,13 @@ def SCENE_7(res, req, user, command):
 
 def FINAL_SCENE(res, req, user, command):
     user.scene = 8
-    if command == di.RUSSIA:
+    if command == di.RUSSIA and not user.end:
         res.addAnswer(di.RUSSIAN)
         user.end = True
         user.win = True
         # предлагаем начать занова
         res.addButton(di.NEW_GAME)
-    elif command == di.USA:
+    elif command == di.USA and not user.game_over:
         res.addAnswer(di.AMERICAN)
         user.game_over = True
         user.end = True
